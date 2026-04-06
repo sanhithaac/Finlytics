@@ -49,7 +49,7 @@ export default function TextOverlays({ progress }) {
         <p className="story-kicker">Dashboard reveal</p>
         <h2 className="story-title">Insights are ready.</h2>
         <p className="story-text">
-          Scroll deeper to enter the live workspace, review transactions, and act on the data.
+          The workspace unlocks as the cinematic sequence resolves into a live finance dashboard.
         </p>
       </div>
     </div>

@@ -20,7 +20,7 @@ function PaymentScore({ completed, total }) {
 }
 
 export default function InvoicesPanel({ transactions, onCreateInvoice }) {
-  const items = transactions.slice(0, 4);
+  const items = transactions.slice(0, 6);
   const completed = items.filter((transaction) => transaction.status === "completed").length;
 
   return (
@@ -42,6 +42,33 @@ export default function InvoicesPanel({ transactions, onCreateInvoice }) {
 
       <div className="mt-6">
         <PaymentScore completed={completed} total={items.length} />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mini-stat">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+            Recent invoices
+          </p>
+          <p className="mt-2 text-lg font-bold text-[var(--text-main)]">{items.length}</p>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
+            Latest outgoing items in the current filter window
+          </p>
+        </div>
+        <div className="mini-stat">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+            Pending amount
+          </p>
+          <p className="mt-2 text-lg font-bold text-[var(--text-main)]">
+            {formatCurrency(
+              items
+                .filter((transaction) => transaction.status === "pending")
+                .reduce((total, transaction) => total + transaction.amount, 0),
+            )}
+          </p>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
+            Outstanding spend still awaiting completion
+          </p>
+        </div>
       </div>
 
       <div className="mt-5 space-y-4">

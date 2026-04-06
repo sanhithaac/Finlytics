@@ -1,5 +1,69 @@
 import { formatMonthLabel } from "./formatters";
 
+export const CATEGORY_GROUP_LABELS = {
+  income: "Income streams",
+  essentials: "Essentials",
+  mobility: "Mobility",
+  lifestyle: "Lifestyle",
+  wellbeing: "Wellbeing",
+  other: "Other",
+};
+
+export function getCategoryGroup(category) {
+  if (["Salary", "Bonus", "Freelance", "Investments"].includes(category)) {
+    return "income";
+  }
+
+  if (["Housing", "Utilities", "Food"].includes(category)) {
+    return "essentials";
+  }
+
+  if (["Transport", "Travel"].includes(category)) {
+    return "mobility";
+  }
+
+  if (["Entertainment", "Shopping"].includes(category)) {
+    return "lifestyle";
+  }
+
+  if (["Health"].includes(category)) {
+    return "wellbeing";
+  }
+
+  return "other";
+}
+
+export function getCategoryGroups(categories) {
+  const grouped = categories.reduce((accumulator, category) => {
+    const group = getCategoryGroup(category);
+
+    if (!accumulator[group]) {
+      accumulator[group] = [];
+    }
+
+    accumulator[group].push(category);
+    return accumulator;
+  }, {});
+
+  return Object.entries(grouped)
+    .sort(([left], [right]) => {
+      if (left === "income") {
+        return -1;
+      }
+
+      if (right === "income") {
+        return 1;
+      }
+
+      return CATEGORY_GROUP_LABELS[left].localeCompare(CATEGORY_GROUP_LABELS[right]);
+    })
+    .map(([id, items]) => ({
+      id,
+      label: CATEGORY_GROUP_LABELS[id],
+      categories: items.sort((left, right) => left.localeCompare(right)),
+    }));
+}
+
 export function sortTransactions(transactions, sortBy) {
   const sorted = [...transactions];
 
@@ -33,14 +97,28 @@ export function filterTransactions(transactions, filters) {
 
     const matchesCategory =
       filters.category === "all" || transaction.category === filters.category;
+    const matchesCategoryGroup =
+      !filters.categoryGroup ||
+      filters.categoryGroup === "all" ||
+      getCategoryGroup(transaction.category) === filters.categoryGroup;
     const matchesType = filters.type === "all" || transaction.type === filters.type;
+    const matchesStatus =
+      filters.status === "all" || transaction.status === filters.status;
 
     const transactionDate = new Date(transaction.date);
     const matchesStart =
       !filters.startDate || transactionDate >= new Date(filters.startDate);
     const matchesEnd = !filters.endDate || transactionDate <= new Date(filters.endDate);
 
-    return matchesSearch && matchesCategory && matchesType && matchesStart && matchesEnd;
+    return (
+      matchesSearch &&
+      matchesCategory &&
+      matchesCategoryGroup &&
+      matchesType &&
+      matchesStatus &&
+      matchesStart &&
+      matchesEnd
+    );
   });
 }
 
@@ -122,9 +200,15 @@ export function getInsights(transactions) {
   const months = getMonthlySeries(transactions);
   const latestMonth = months[months.length - 1];
   const previousMonth = months[months.length - 2];
+  const latestMonthSpend = latestMonth?.expenses || 0;
+  const previousMonthSpend = previousMonth?.expenses || 0;
   const monthlyDelta =
     latestMonth && previousMonth
       ? ((latestMonth.net - previousMonth.net) / Math.max(Math.abs(previousMonth.net), 1)) * 100
+      : 0;
+  const spendDelta =
+    latestMonth && previousMonth
+      ? ((latestMonthSpend - previousMonthSpend) / Math.max(previousMonthSpend, 1)) * 100
       : 0;
 
   const averageTransaction =
@@ -174,10 +258,14 @@ export function getInsights(transactions) {
       : 0;
 
   const smartInsights = [
-    `You spent ${Math.abs(foodWeeklyDelta).toFixed(0)}% ${
-      foodWeeklyDelta >= 0 ? "more" : "less"
-    } on Food this week`,
-    `Your income ${incomeDelta >= 0 ? "increased" : "decreased"} compared to last month`,
+    latestMonth && previousMonth
+      ? `${latestMonth.label} closed ${Math.abs(monthlyDelta).toFixed(0)}% ${
+          monthlyDelta >= 0 ? "ahead of" : "below"
+        } ${previousMonth.label}`
+      : "Monthly comparison will appear after at least two months of data are visible.",
+    `Food spend is ${Math.abs(foodWeeklyDelta).toFixed(0)}% ${
+      foodWeeklyDelta >= 0 ? "higher" : "lower"
+    } than last week`,
     `Highest spending category is ${categories[0]?.category || "not available"} right now`,
   ];
 
@@ -187,6 +275,15 @@ export function getInsights(transactions) {
     averageTransaction,
     savingsRate: summary.income === 0 ? 0 : (summary.balance / summary.income) * 100,
     latestMonthLabel: latestMonth?.label || "No recent month",
+    previousMonthLabel: previousMonth?.label || "No previous month",
+    latestMonthNet: latestMonth?.net || 0,
+    previousMonthNet: previousMonth?.net || 0,
+    latestMonthIncome: latestMonth?.income || 0,
+    latestMonthExpenses: latestMonthSpend,
+    previousMonthIncome: previousMonth?.income || 0,
+    previousMonthExpenses: previousMonthSpend,
+    incomeDelta,
+    spendDelta,
     smartInsights,
   };
 }

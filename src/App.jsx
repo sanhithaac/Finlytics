@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useRef, useState } from "react";
 import BalanceBars from "./components/BalanceBars";
 import CalendarPanel from "./components/CalendarPanel";
 import CategoryChart from "./components/CategoryChart";
@@ -16,11 +16,13 @@ import { useAppContext } from "./context/AppContext";
 import {
   filterTransactions,
   getCategoryBreakdown,
+  getCategoryGroups,
   getInsights,
   getMonthlySeries,
   getSummary,
   sortTransactions,
 } from "./utils/dashboard";
+import { formatCurrency } from "./utils/formatters";
 
 function LoadingDashboard() {
   return (
@@ -100,6 +102,7 @@ export default function App() {
   };
 
   const categories = [...new Set(state.transactions.map((item) => item.category))].sort();
+  const categoryGroups = getCategoryGroups(categories);
   const filteredTransactions = sortTransactions(
     filterTransactions(state.transactions, effectiveFilters),
     state.filters.sortBy,
@@ -109,13 +112,12 @@ export default function App() {
   const insights = getInsights(filteredTransactions);
   const latestMonth = monthlySeries[monthlySeries.length - 1];
   const previousMonth = monthlySeries[monthlySeries.length - 2];
-  const latestTransactionDate = filteredTransactions.length
-    ? new Date(
-        [...filteredTransactions]
-          .sort((left, right) => new Date(right.date) - new Date(left.date))[0]
-          .date,
-      )
-    : new Date("2026-04-05");
+  const latestTransactionDateKey = filteredTransactions.length
+    ? [...filteredTransactions].sort(
+        (left, right) => new Date(right.date) - new Date(left.date),
+      )[0].date
+    : "2026-04-05";
+  const latestTransactionDate = new Date(latestTransactionDateKey);
 
   const chartSeries = (() => {
     if (chartWindow === "Weekly") {
@@ -151,6 +153,9 @@ export default function App() {
   const invoiceTransactions = filteredTransactions.filter(
     (transaction) => transaction.type === "expense",
   );
+  const pendingTransactions = filteredTransactions.filter(
+    (transaction) => transaction.status === "pending",
+  );
   const selectedCalendarDate =
     state.filters.startDate &&
     state.filters.endDate &&
@@ -163,6 +168,38 @@ export default function App() {
     income: getMetricChange(latestMonth?.income || 0, previousMonth?.income || 0),
     expenses: getMetricChange(latestMonth?.expenses || 0, previousMonth?.expenses || 0),
   };
+  const averageExpense =
+    invoiceTransactions.length > 0
+      ? invoiceTransactions.reduce((total, transaction) => total + transaction.amount, 0) /
+        invoiceTransactions.length
+      : 0;
+  const strongestNetMonth = [...monthlySeries].sort((left, right) => right.net - left.net)[0];
+  const metricHighlights = [
+    {
+      label: "Transactions tracked",
+      value: filteredTransactions.length,
+      detail: "Loaded across the active workspace window",
+    },
+    {
+      label: "Pending reviews",
+      value: pendingTransactions.length,
+      detail: "Expenses and items still marked pending",
+    },
+    {
+      label: "Highest spending",
+      value: insights.topCategory?.category || "No data",
+      detail: insights.topCategory
+        ? `${insights.topCategory.category} at ${formatCurrency(insights.topCategory.amount)}`
+        : "No expense data in this view",
+    },
+    {
+      label: "Average expense",
+      value: formatCurrency(averageExpense),
+      detail: strongestNetMonth
+        ? `Best month: ${strongestNetMonth.label}`
+        : "Waiting for more monthly data",
+    },
+  ];
 
   const hasActiveFilters = Object.entries(state.filters).some(([key, value]) => {
     if (key === "sortBy") {
@@ -173,12 +210,21 @@ export default function App() {
       return value !== "none";
     }
 
+    if (key === "categoryGroup") {
+      return value !== "all";
+    }
+
     return value !== "" && value !== "all";
   });
 
   function handleToggleTheme() {
     setTheme(state.theme === "dark" ? "light" : "dark");
   }
+
+  const handleIntroComplete = useCallback(() => {
+    setTheme("dark");
+    setShowIntro(false);
+  }, [setTheme]);
 
   function openCreateModal() {
     setEditingTransaction(null);
@@ -221,18 +267,8 @@ export default function App() {
     });
   }
 
-  function handleCycleSpendingWindow() {
-    setSpendingWindow((current) => {
-      if (current === "30d") {
-        return "90d";
-      }
-
-      if (current === "90d") {
-        return "all";
-      }
-
-      return "30d";
-    });
+  function handleChangeSpendingWindow(nextWindow) {
+    setSpendingWindow(nextWindow);
   }
 
   function handleExportCsv() {
@@ -341,7 +377,7 @@ export default function App() {
     setCalendarMonth(
       new Date(latestTransactionDate.getFullYear(), latestTransactionDate.getMonth(), 1),
     );
-  }, [latestTransactionDate]);
+  }, [latestTransactionDateKey]);
 
   useEffect(() => {
     const sectionEntries = [
@@ -382,12 +418,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] transition-colors duration-500">
       {showIntro ? (
-        <ScrollIntro
-          onComplete={() => {
-            setTheme("dark");
-            setShowIntro(false);
-          }}
-        />
+        <ScrollIntro onComplete={handleIntroComplete} />
       ) : null}
 
       <div className="relative min-h-screen p-0">
@@ -404,7 +435,7 @@ export default function App() {
             />
 
             <main
-              className={`flex-1 rounded-2xl border border-[var(--shell-border)] bg-[var(--bg-secondary)] p-4 transition duration-700 sm:p-5 ${
+              className={`flex-1 rounded-2xl border border-[var(--shell-border)] bg-[var(--bg-secondary)] p-4 transition-colors duration-500 sm:p-5 ${
                 showIntro ? "dashboard-main-hidden" : "dashboard-main-ready"
               }`}
             >
@@ -412,26 +443,9 @@ export default function App() {
                 <LoadingDashboard />
               ) : (
                 <div className="grid gap-4">
-                  <section className="dashboard-handoff">
-                    <div>
-                      <p className="dashboard-kicker">Live workspace</p>
-                      <h2 className="dashboard-title">Financial command center</h2>
-                      <p className="dashboard-copy">
-                        The cinematic sequence resolves into a focused workspace where every
-                        balance change, category shift, and transaction can be reviewed in
-                        real time.
-                      </p>
-                    </div>
-
-                    <div className="dashboard-handoff-chips">
-                      <span className="dashboard-chip">Role aware</span>
-                      <span className="dashboard-chip">Persistent data</span>
-                      <span className="dashboard-chip">Insight driven</span>
-                    </div>
-                  </section>
-
                   <Header
                     appName={appName}
+                    latestTransactionDate={latestTransactionDate}
                     role={state.role}
                     theme={state.theme}
                     search={state.filters.search}
@@ -503,7 +517,21 @@ export default function App() {
                     </div>
                   </section>
 
-                  <section className="grid gap-4 xl:grid-cols-3 xl:items-stretch">
+                  <section className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+                    {metricHighlights.map((item) => (
+                      <article key={item.label} className="soft-panel rounded-[24px] p-4">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--text-muted)]">
+                          {item.label}
+                        </p>
+                        <p className="mt-4 text-[1.9rem] font-black leading-none text-[var(--text-main)]">
+                          {item.value}
+                        </p>
+                        <p className="mt-3 text-sm text-[var(--text-muted)]">{item.detail}</p>
+                      </article>
+                    ))}
+                  </section>
+
+                  <section className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr),minmax(0,1fr)] xl:items-stretch">
                     <div ref={revenueRef} className="scroll-mt-24">
                       <TrendChart
                         data={chartSeries}
@@ -516,14 +544,21 @@ export default function App() {
                     <div ref={spendingRef} className="scroll-mt-24">
                       <CategoryChart
                         data={categoryBreakdown}
+                        transactions={spendingTransactions}
                         spendingWindow={spendingWindow}
-                        onCycleWindow={handleCycleSpendingWindow}
+                        onWindowChange={handleChangeSpendingWindow}
                       />
                     </div>
-                    <BalanceBars data={monthlySeries.slice(-6)} />
                   </section>
 
-                  <section className="grid gap-4 xl:grid-cols-3 xl:items-stretch">
+                  <section className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr),minmax(0,1fr)] xl:items-stretch">
+                    <BalanceBars data={monthlySeries.slice(-8)} />
+                    <div ref={insightsRef} className="scroll-mt-24">
+                      <InsightsPanel insights={insights} summary={summary} />
+                    </div>
+                  </section>
+
+                  <section className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr),minmax(0,0.9fr)] xl:items-stretch">
                     <div ref={calendarRef} className="scroll-mt-24">
                       <CalendarPanel
                         transactions={filteredTransactions}
@@ -535,9 +570,6 @@ export default function App() {
                         onSelectDate={handleSelectCalendarDate}
                       />
                     </div>
-                    <div ref={insightsRef} className="scroll-mt-24">
-                      <InsightsPanel insights={insights} summary={summary} />
-                    </div>
                     <InvoicesPanel
                       transactions={invoiceTransactions}
                       onCreateInvoice={openCreateModal}
@@ -548,6 +580,7 @@ export default function App() {
                     <FiltersBar
                       filters={state.filters}
                       categories={categories}
+                      categoryGroups={categoryGroups}
                       hasActiveFilters={hasActiveFilters}
                       onChange={setFilters}
                       onReset={resetFilters}

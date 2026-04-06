@@ -1,17 +1,35 @@
 export default function FiltersBar({
   filters,
   categories,
+  categoryGroups,
   hasActiveFilters,
   onChange,
   onReset,
 }) {
   const activeFilterCount = [
+    filters.categoryGroup !== "all",
     filters.category !== "all",
     filters.type !== "all",
+    filters.status !== "all",
     Boolean(filters.startDate),
     Boolean(filters.endDate),
     filters.sortBy !== "date-desc",
+    filters.groupBy !== "none",
   ].filter(Boolean).length;
+
+  function handleCategoryGroupChange(nextGroup) {
+    const isCategoryStillValid = categoryGroups
+      .find((group) => group.id === nextGroup)
+      ?.categories.includes(filters.category);
+
+    onChange({
+      categoryGroup: nextGroup,
+      category:
+        nextGroup === "all" || isCategoryStillValid || filters.category === "all"
+          ? filters.category
+          : "all",
+    });
+  }
 
   return (
     <div className="controls-shell cinematic-card">
@@ -23,8 +41,8 @@ export default function FiltersBar({
             Transaction controls
           </h3>
           <p className="section-copy">
-            Fine-tune results by category, type, dates, and sorting while search stays
-            available in the top bar.
+            Filter by grouped categories, status, dates, and sorting without losing your current
+            search context.
           </p>
         </div>
 
@@ -44,11 +62,48 @@ export default function FiltersBar({
       </div>
 
       <div className="controls-summary">
-        <span className="controls-badge">Search reacts instantly without reload</span>
-        <span className="controls-badge">Results stay synced with date and role filters</span>
+        <span className="controls-badge">Category filters are now grouped for faster scanning</span>
+        <span className="controls-badge">Sort and group controls update the table instantly</span>
+        <span className="controls-badge">Search stays synced with the header field above</span>
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => handleCategoryGroupChange("all")}
+          className={`pill-button ${filters.categoryGroup === "all" ? "pill-button-active" : ""}`}
+        >
+          All groups
+        </button>
+        {categoryGroups.map((group) => (
+          <button
+            key={group.id}
+            type="button"
+            onClick={() => handleCategoryGroupChange(group.id)}
+            className={`pill-button ${filters.categoryGroup === group.id ? "pill-button-active" : ""}`}
+          >
+            {group.label}
+          </button>
+        ))}
       </div>
 
       <div className="controls-grid">
+        <label>
+          <span className="field-label">Category group</span>
+          <select
+            value={filters.categoryGroup}
+            onChange={(event) => handleCategoryGroupChange(event.target.value)}
+            className="field mt-2"
+          >
+            <option value="all">All groups</option>
+            {categoryGroups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
         <label>
           <span className="field-label">Category</span>
           <select
@@ -57,11 +112,28 @@ export default function FiltersBar({
             className="field mt-2"
           >
             <option value="all">All categories</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
+            {categoryGroups.map((group) => {
+              if (filters.categoryGroup !== "all" && filters.categoryGroup !== group.id) {
+                return null;
+              }
+
+              return (
+                <optgroup key={group.id} label={group.label}>
+                  {group.categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </optgroup>
+              );
+            })}
+            {categoryGroups.length === 0
+              ? categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))
+              : null}
           </select>
         </label>
 
@@ -79,10 +151,33 @@ export default function FiltersBar({
         </label>
 
         <label>
+          <span className="field-label">Status</span>
+          <select
+            value={filters.status}
+            onChange={(event) => onChange({ status: event.target.value })}
+            className="field mt-2"
+          >
+            <option value="all">All status</option>
+            <option value="completed">Completed</option>
+            <option value="pending">Pending</option>
+          </select>
+        </label>
+
+        <label>
           <span className="field-label">Start date</span>
           <input
             value={filters.startDate}
             onChange={(event) => onChange({ startDate: event.target.value })}
+            type="date"
+            className="field mt-2"
+          />
+        </label>
+
+        <label>
+          <span className="field-label">End date</span>
+          <input
+            value={filters.endDate}
+            onChange={(event) => onChange({ endDate: event.target.value })}
             type="date"
             className="field mt-2"
           />
@@ -103,16 +198,6 @@ export default function FiltersBar({
         </label>
 
         <label>
-          <span className="field-label">End date</span>
-          <input
-            value={filters.endDate}
-            onChange={(event) => onChange({ endDate: event.target.value })}
-            type="date"
-            className="field mt-2"
-          />
-        </label>
-
-        <label>
           <span className="field-label">Group by</span>
           <select
             value={filters.groupBy}
@@ -126,7 +211,7 @@ export default function FiltersBar({
           </select>
         </label>
 
-        <label className="md:col-span-2 xl:col-span-6">
+        <label className="md:col-span-2 xl:col-span-4">
           <span className="field-label">Search</span>
           <input
             value={filters.search}

@@ -92,6 +92,7 @@ export default function Sidebar({
   role,
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [wasManuallyClosed, setWasManuallyClosed] = useState(false);
   const items = [
     { id: "overview", label: "Overview" },
     { id: "revenue", label: "Revenue" },
@@ -104,22 +105,32 @@ export default function Sidebar({
   return (
     <aside className="w-full xl:sticky xl:top-4 xl:w-auto xl:self-start">
       <div
+        onMouseEnter={() => {
+          if (!wasManuallyClosed) {
+            setIsExpanded(true);
+          }
+        }}
         className={`sidebar-shell flex h-full flex-row items-center gap-3 p-3 xl:min-h-[calc(100vh-2rem)] xl:flex-col xl:justify-start ${
           isExpanded ? "sidebar-shell-expanded xl:w-[258px]" : "xl:w-[92px]"
         }`}
       >
         <div className="hidden w-full items-center justify-between px-2 pb-3 pt-1 xl:flex">
           <div className="rail-text">
-            <p className="text-sm font-bold tracking-[0.02em] text-[var(--text-main)]">
-              Finlytics
-            </p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">
-              Track. Analyze. Grow.
-            </p>
+            <p className="text-sm font-bold tracking-[0.02em] text-[var(--text-main)]">Finlytics</p>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">Track. Analyze. Grow.</p>
           </div>
           <button
             type="button"
-            onClick={() => setIsExpanded((current) => !current)}
+            onClick={() => {
+              if (isExpanded) {
+                setIsExpanded(false);
+                setWasManuallyClosed(true);
+                return;
+              }
+
+              setIsExpanded(true);
+              setWasManuallyClosed(false);
+            }}
             className="sidebar-toggle"
             title={isExpanded ? "Collapse navigation" : "Expand navigation"}
           >
@@ -127,7 +138,7 @@ export default function Sidebar({
               aria-hidden="true"
               className={`sidebar-toggle-arrow ${isExpanded ? "sidebar-toggle-arrow-open" : ""}`}
             >
-              ›
+              {isExpanded ? "x" : ">"}
             </span>
           </button>
         </div>
@@ -144,10 +155,7 @@ export default function Sidebar({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => {
-                  setIsExpanded(true);
-                  onSelect(item.id);
-                }}
+                onClick={() => onSelect(item.id)}
                 className={`rail-item ${isActive ? "rail-item-active" : ""}`}
                 title={item.label}
                 aria-current={isActive ? "page" : undefined}
@@ -165,12 +173,7 @@ export default function Sidebar({
         </div>
 
         <div className="grid grid-cols-3 gap-2 md:grid-cols-3 xl:flex xl:w-full xl:flex-col xl:border-t xl:border-[var(--border)] xl:pt-3">
-          <button
-            type="button"
-            onClick={onToggleTheme}
-            className="rail-item"
-            title="Toggle theme"
-          >
+          <button type="button" onClick={onToggleTheme} className="rail-item" title="Toggle theme">
             <SidebarIcon type="theme" />
             <span className="rail-text">Theme</span>
           </button>

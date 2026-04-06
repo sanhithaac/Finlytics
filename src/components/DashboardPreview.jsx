@@ -16,18 +16,24 @@ export default function DashboardPreview({ progress }) {
       <div className="story-preview-grid">
         <div className="story-preview-card">
           <p className="field-label">Balance</p>
-          <p className="mt-3 text-2xl font-black text-white">₹18,283</p>
-          <p className="mt-2 text-sm text-[rgba(237,233,254,0.72)]">Net position across active view</p>
+          <p className="mt-3 text-2xl font-black text-white">INR 18,283</p>
+          <p className="mt-2 text-sm text-[rgba(237,233,254,0.72)]">
+            Net position across active view
+          </p>
         </div>
         <div className="story-preview-card">
           <p className="field-label">Income</p>
-          <p className="mt-3 text-2xl font-black text-white">₹23,240</p>
-          <p className="mt-2 text-sm text-[rgba(237,233,254,0.72)]">Incoming cash flow and payouts</p>
+          <p className="mt-3 text-2xl font-black text-white">INR 23,240</p>
+          <p className="mt-2 text-sm text-[rgba(237,233,254,0.72)]">
+            Incoming cash flow and payouts
+          </p>
         </div>
         <div className="story-preview-card">
           <p className="field-label">Expenses</p>
-          <p className="mt-3 text-2xl font-black text-white">₹4,957</p>
-          <p className="mt-2 text-sm text-[rgba(237,233,254,0.72)]">Outgoing spend across categories</p>
+          <p className="mt-3 text-2xl font-black text-white">INR 4,957</p>
+          <p className="mt-2 text-sm text-[rgba(237,233,254,0.72)]">
+            Outgoing spend across categories
+          </p>
         </div>
       </div>
 
@@ -39,9 +45,9 @@ export default function DashboardPreview({ progress }) {
         </div>
         <div className="story-preview-list">
           {[
-            ["Groceries", "expense", "₹185"],
-            ["Salary", "income", "₹4,200"],
-            ["Rent", "expense", "₹1,450"],
+            ["Groceries", "expense", "INR 185"],
+            ["Salary", "income", "INR 4,200"],
+            ["Rent", "expense", "INR 1,450"],
           ].map(([label, type, amount]) => (
             <div key={label} className="story-preview-row">
               <div>

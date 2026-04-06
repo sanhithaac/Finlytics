@@ -1,7 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import DashboardPreview from "./DashboardPreview";
+import { useEffect, useRef, useState } from "react";
 import ParticleScrollAnimation from "./ParticleScrollAnimation";
-import TextOverlays from "./TextOverlays";
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -10,21 +8,16 @@ function clamp(value, min, max) {
 export default function ScrollIntro({ onComplete }) {
   const [progress, setProgress] = useState(0);
   const [isLeaving, setIsLeaving] = useState(false);
+  const completeRef = useRef(onComplete);
+  const hasCompletedRef = useRef(false);
 
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 26 }, (_, index) => ({
-        id: index,
-        left: ((index * 17) % 96) + 2,
-        top: ((index * 23) % 76) + 8,
-        size: 4 + (index % 4) * 2,
-        delay: (index % 6) * 0.08,
-      })),
-    [],
-  );
+  useEffect(() => {
+    completeRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     let frameId = 0;
+    let timeoutId = 0;
     const duration = 5600;
     const startedAt = performance.now();
     const previousOverflow = document.body.style.overflow;
@@ -39,10 +32,13 @@ export default function ScrollIntro({ onComplete }) {
         return;
       }
 
-      setIsLeaving(true);
-      window.setTimeout(() => {
-        onComplete?.();
-      }, 520);
+      if (!hasCompletedRef.current) {
+        hasCompletedRef.current = true;
+        setIsLeaving(true);
+        timeoutId = window.setTimeout(() => {
+          completeRef.current?.();
+        }, 520);
+      }
     };
 
     frameId = window.requestAnimationFrame(animate);
@@ -52,35 +48,29 @@ export default function ScrollIntro({ onComplete }) {
       if (frameId) {
         window.cancelAnimationFrame(frameId);
       }
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
     };
-  }, [onComplete]);
+  }, []);
 
   return (
     <section
-      className={`story-shell ${isLeaving ? "story-shell-leaving" : ""}`}
+      className={`story-shell story-shell-force-dark ${isLeaving ? "story-shell-leaving" : ""}`}
       aria-label="Opening Finlytics animation"
     >
       <div className="story-sticky">
-        <ParticleScrollAnimation progress={progress} particles={particles} />
-        <TextOverlays progress={progress} />
-        <DashboardPreview progress={progress} />
-
-        <div className="story-progress">
-          <span>Data transformation</span>
-          <div className="story-progress-track">
-            <div
-              className="story-progress-fill"
-              style={{ width: `${Math.max(progress * 100, 6)}%` }}
-            />
-          </div>
-        </div>
+        <ParticleScrollAnimation progress={progress} />
 
         <button
           type="button"
           onClick={() => {
             setProgress(1);
             setIsLeaving(true);
-            window.setTimeout(() => onComplete?.(), 120);
+            if (!hasCompletedRef.current) {
+              hasCompletedRef.current = true;
+              window.setTimeout(() => completeRef.current?.(), 120);
+            }
           }}
           className="story-skip"
         >

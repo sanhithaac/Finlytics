@@ -11,8 +11,10 @@ const STORAGE_KEYS = {
 
 const defaultFilters = {
   search: "",
+  categoryGroup: "all",
   category: "all",
   type: "all",
+  status: "all",
   startDate: "",
   endDate: "",
   sortBy: "date-desc",
@@ -32,11 +34,29 @@ function parseStoredValue(key, fallback) {
   }
 }
 
+function getInitialTransactions() {
+  const storedTransactions = parseStoredValue(STORAGE_KEYS.transactions, []);
+
+  if (!Array.isArray(storedTransactions) || storedTransactions.length === 0) {
+    return seedTransactions;
+  }
+
+  const merged = new Map(seedTransactions.map((transaction) => [transaction.id, transaction]));
+
+  for (const transaction of storedTransactions) {
+    merged.set(transaction.id, transaction);
+  }
+
+  return [...merged.values()].sort(
+    (left, right) => new Date(right.date) - new Date(left.date),
+  );
+}
+
 function getInitialState() {
   return {
     theme: parseStoredValue(STORAGE_KEYS.theme, "dark"),
     role: parseStoredValue(STORAGE_KEYS.role, "admin"),
-    transactions: parseStoredValue(STORAGE_KEYS.transactions, seedTransactions),
+    transactions: getInitialTransactions(),
     filters: defaultFilters,
   };
 }

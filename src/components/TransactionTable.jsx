@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { formatCurrency, formatShortDate } from "../utils/formatters";
 
 function groupTransactions(transactions, groupBy) {
@@ -48,7 +49,35 @@ export default function TransactionTable({
   onExportCsv,
   onExportJson,
 }) {
+  const [exportAction, setExportAction] = useState("");
   const groupedTransactions = groupTransactions(transactions, groupBy);
+  const incomeCount = transactions.filter((transaction) => transaction.type === "income").length;
+  const expenseCount = transactions.length - incomeCount;
+  const pendingCount = transactions.filter((transaction) => transaction.status === "pending").length;
+
+  function handleExportChange(value) {
+    setExportAction(value);
+
+    if (value === "csv") {
+      onExportCsv();
+    }
+
+    if (value === "json") {
+      onExportJson();
+    }
+
+    window.setTimeout(() => setExportAction(""), 0);
+  }
+
+  function handleRowAction(transaction, value) {
+    if (value === "edit") {
+      onEdit(transaction);
+    }
+
+    if (value === "delete") {
+      onDelete(transaction.id);
+    }
+  }
 
   if (transactions.length === 0) {
     return (
@@ -57,14 +86,10 @@ export default function TransactionTable({
           No transactions match these filters
         </p>
         <p className="mt-2 max-w-md text-sm text-[var(--muted)]">
-          Try broadening the date range, changing category filters, or clearing search
-          to bring results back.
+          Try broadening the date range, changing category filters, or clearing search to bring
+          results back.
         </p>
-        <button
-          type="button"
-          onClick={onClearFilters}
-          className="primary-button mt-5"
-        >
+        <button type="button" onClick={onClearFilters} className="primary-button mt-5">
           Reset view
         </button>
       </div>
@@ -81,19 +106,28 @@ export default function TransactionTable({
             Transactions
           </h3>
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Search, filter, and review the latest finance activity.
+            Review the latest finance activity with quick export and row actions.
           </p>
         </div>
+
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" onClick={onExportCsv} className="secondary-button">
-            Export CSV
-          </button>
-          <button type="button" onClick={onExportJson} className="secondary-button">
-            Export JSON
-          </button>
-          <span className="results-pill">
-            {transactions.length} results
-          </span>
+          <span className="results-pill">{incomeCount} income</span>
+          <span className="results-pill">{expenseCount} expense</span>
+          <span className="results-pill">{pendingCount} pending</span>
+          {groupBy !== "none" ? <span className="results-pill">Grouped by {groupBy}</span> : null}
+          <label className="min-w-[170px]">
+            <span className="sr-only">Export transactions</span>
+            <select
+              value={exportAction}
+              onChange={(event) => handleExportChange(event.target.value)}
+              className="field"
+            >
+              <option value="">Export menu</option>
+              <option value="csv">Export CSV</option>
+              <option value="json">Export JSON</option>
+            </select>
+          </label>
+          <span className="results-pill">{transactions.length} results</span>
         </div>
       </div>
 
@@ -111,7 +145,10 @@ export default function TransactionTable({
             </tr>
           </thead>
           {groupedTransactions.map((group, groupIndex) => (
-            <tbody key={`${group.label || "all"}-${groupIndex}`} className="divide-y divide-[var(--border)]">
+            <tbody
+              key={`${group.label || "all"}-${groupIndex}`}
+              className="divide-y divide-[var(--border)]"
+            >
               {group.label ? (
                 <tr className="group-row">
                   <td colSpan={7} className="px-5 py-3">
@@ -137,9 +174,7 @@ export default function TransactionTable({
                     {formatShortDate(transaction.date)}
                   </td>
                   <td className="px-5 py-4">
-                    <span className="transaction-meta">
-                      {transaction.category}
-                    </span>
+                    <span className="transaction-meta">{transaction.category}</span>
                   </td>
                   <td className="px-5 py-4">
                     <span
@@ -173,22 +208,18 @@ export default function TransactionTable({
                   </td>
                   <td className="px-5 py-4">
                     {role === "admin" ? (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onEdit(transaction)}
-                          className="transaction-action"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onDelete(transaction.id)}
-                          className="transaction-action transaction-action-danger"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                      <select
+                        defaultValue=""
+                        onChange={(event) => {
+                          handleRowAction(transaction, event.target.value);
+                          event.target.value = "";
+                        }}
+                        className="field min-w-[132px]"
+                      >
+                        <option value="">Actions</option>
+                        <option value="edit">Edit row</option>
+                        <option value="delete">Delete row</option>
+                      </select>
                     ) : (
                       <span className="text-sm text-[var(--muted)]">Read only</span>
                     )}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 function SearchIcon() {
   return (
@@ -19,8 +19,17 @@ function BellIcon() {
   );
 }
 
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function Header({
   appName,
+  latestTransactionDate,
   role,
   theme,
   search,
@@ -30,153 +39,204 @@ export default function Header({
   onAddTransaction,
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
+  const todayLabel = useMemo(
+    () =>
+      latestTransactionDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    [latestTransactionDate],
+  );
+
   const notifications = [
-    "Monthly insights are ready",
-    "Transactions are saved to local storage",
-    "Viewer mode keeps the dashboard read-only",
+    {
+      title: "Monthly compare is live",
+      body: "Insights now surface the latest month against the previous one for quicker context.",
+    },
+    {
+      title: "Interactive chart hover",
+      body: "Hovering the revenue and spending graphs highlights the strongest points instantly.",
+    },
+    {
+      title: "Grouped category filters",
+      body: "The transaction query bar now separates essentials, lifestyle, income, and more.",
+    },
   ];
+
   const statusItems = [
     { label: "Active view", value: role === "admin" ? "Admin" : "Viewer" },
     { label: "Theme", value: theme === "dark" ? "Neon" : "Light" },
-    { label: "Sync", value: "Local storage" },
+    { label: "Data date", value: todayLabel },
   ];
 
   return (
-    <header className="flex flex-col gap-4 pb-5">
-      <div className="header-shell">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs font-bold uppercase tracking-[0.34em] text-[var(--text-muted)]">
-              Finance cockpit
-            </p>
-            <div className="hero-chip">
-              <span className="status-orb" />
-              {role === "admin" ? "Admin access" : "Viewer mode"}
-            </div>
-          </div>
-          <h1 className="mt-2 text-[clamp(2.8rem,6vw,4.75rem)] font-black tracking-[-0.06em] text-[var(--text-main)]">
-            {appName}
-          </h1>
-          <p className="mt-2 text-lg font-semibold text-[var(--text-main)]">Dashboard overview</p>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">
-            {appName} helps you track cash flow, review activity, and monitor growth with a clean finance workspace.
-          </p>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {statusItems.map((item) => (
-              <span key={item.label} className="header-chip">
-                <span className="text-[var(--text-muted)]">{item.label}</span>
-                <span className="font-semibold text-[var(--text-main)]">{item.value}</span>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="header-toolbar">
-          <label className="search-pill">
-            <SearchIcon />
-            <input
-              value={search}
-              onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Search category, title, or note"
-              className="w-full bg-transparent text-sm text-[var(--text-main)] outline-none placeholder:text-[var(--text-muted)]"
-            />
-          </label>
-
-          <div className="header-actions">
-            <div className="segmented-control" role="tablist" aria-label="Role switcher">
-              {[
-                ["admin", "Admin"],
-                ["viewer", "Viewer"],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => onRoleChange(value)}
-                  className={`segmented-option ${role === value ? "segmented-option-active" : ""}`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            <div className="segmented-control" role="tablist" aria-label="Theme switcher">
-              {[
-                ["dark", "Dark"],
-                ["light", "Light"],
-              ].map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => {
-                    if (theme !== value) {
-                      onToggleTheme();
-                    }
-                  }}
-                  className={`segmented-option ${theme === value ? "segmented-option-active" : ""}`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={onAddTransaction}
-              disabled={role !== "admin"}
-              className="primary-button disabled:cursor-not-allowed disabled:opacity-45"
-            >
-              Add txn
-            </button>
-
-            <div className="workspace-pill">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--primary)] text-sm font-bold text-white">
-                {role === "admin" ? "AD" : "VW"}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-[var(--text-main)]">
-                  {role === "admin" ? "Admin workspace" : "Viewer workspace"}
-                </p>
-                <p className="text-xs text-[var(--text-muted)]">finlytics.portal@demo.dev</p>
+    <>
+      <header className="flex flex-col gap-4 pb-5">
+        <div className="header-shell header-shell-balanced">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-bold uppercase tracking-[0.34em] text-[var(--text-muted)]">
+                Finance cockpit
+              </p>
+              <div className="hero-chip">
+                <span className="status-orb" />
+                {role === "admin" ? "Admin access" : "Viewer mode"}
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowNotifications((current) => !current)}
-              className="soft-panel relative flex h-11 w-11 items-center justify-center rounded-full text-[var(--text-main)]"
-              title="Notifications"
-            >
-              <BellIcon />
-            </button>
+            <div>
+              <p className="text-lg font-semibold text-[var(--text-main)]">Dashboard overview</p>
+              <p className="mt-2 max-w-xl text-sm text-[var(--text-muted)]">
+                Track cash flow, compare month-on-month movement, and review recent activity from a
+                cleaner single-screen workspace.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {statusItems.map((item) => (
+                <span key={item.label} className="header-chip">
+                  <span className="text-[var(--text-muted)]">{item.label}</span>
+                  <span className="font-semibold text-[var(--text-main)]">{item.value}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="header-centerpiece">
+            <div className="header-brand-badge">
+              <span className="header-brand-kicker">Workspace brand</span>
+              <h1 className="text-[clamp(2.7rem,5vw,4.4rem)] font-black tracking-[-0.08em] text-[var(--text-main)]">
+                {appName}
+              </h1>
+              <p className="mt-2 text-sm font-medium text-[var(--text-muted)]">
+                Synced through {todayLabel}
+              </p>
+            </div>
+          </div>
+
+          <div className="header-toolbar">
+            <label className="search-pill">
+              <SearchIcon />
+              <input
+                value={search}
+                onChange={(event) => onSearchChange(event.target.value)}
+                placeholder="Search category, title, or note"
+                className="w-full bg-transparent text-sm text-[var(--text-main)] outline-none placeholder:text-[var(--text-muted)]"
+              />
+            </label>
+
+            <div className="header-actions">
+              <div className="segmented-control" role="tablist" aria-label="Role switcher">
+                {[
+                  ["admin", "Admin"],
+                  ["viewer", "Viewer"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => onRoleChange(value)}
+                    className={`segmented-option ${role === value ? "segmented-option-active" : ""}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="segmented-control" role="tablist" aria-label="Theme switcher">
+                {[
+                  ["dark", "Dark"],
+                  ["light", "Light"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      if (theme !== value) {
+                        onToggleTheme();
+                      }
+                    }}
+                    className={`segmented-option ${theme === value ? "segmented-option-active" : ""}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={onAddTransaction}
+                disabled={role !== "admin"}
+                className="primary-button disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                Add txn
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowNotifications(true)}
+                className="notification-trigger"
+                title="Notifications"
+              >
+                <BellIcon />
+                <span className="notification-count">{notifications.length}</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {showNotifications ? (
-        <div className="panel max-w-lg p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-[var(--text-main)]">Notifications</p>
-            <button
-              type="button"
-              onClick={() => setShowNotifications(false)}
-              className="text-xs font-semibold text-[var(--text-muted)]"
-            >
-              Close
-            </button>
-          </div>
-          <div className="mt-3 space-y-2">
-            {notifications.map((notification) => (
-              <div
-                key={notification}
-                className="rounded-xl border border-[var(--border)] bg-[var(--card-soft)] px-3 py-2 text-sm text-[var(--text-muted)]"
-              >
-                {notification}
+        <div className="notification-modal" role="dialog" aria-modal="true" aria-label="Notifications">
+          <button
+            type="button"
+            className="notification-backdrop"
+            onClick={() => setShowNotifications(false)}
+            aria-label="Close notifications"
+          />
+          <div className="notification-panel">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--text-muted)]">
+                  Notifications
+                </p>
+                <h3 className="mt-2 text-2xl font-black tracking-tight text-[var(--text-main)]">
+                  Workspace updates
+                </h3>
+                <p className="mt-2 text-sm text-[var(--text-muted)]">
+                  Recent product changes and finance workspace cues in a focused popup instead of a
+                  full-page takeover.
+                </p>
               </div>
-            ))}
+              <button
+                type="button"
+                onClick={() => setShowNotifications(false)}
+                className="icon-button"
+                title="Close notifications"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+
+            <div className="mt-6 grid gap-3">
+              {notifications.map((notification, index) => (
+                <div key={notification.title} className="notification-card">
+                  <div className="notification-index">{String(index + 1).padStart(2, "0")}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--text-main)]">
+                      {notification.title}
+                    </p>
+                    <p className="mt-1 text-sm text-[var(--text-muted)]">{notification.body}</p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                      Updated just now
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ) : null}
-    </header>
+    </>
   );
 }
