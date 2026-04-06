@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatCurrency, formatShortDate } from "../utils/formatters";
+
+const DEFAULT_VISIBLE_ROWS = 15;
 
 function groupTransactions(transactions, groupBy) {
   if (!groupBy || groupBy === "none") {
@@ -39,6 +41,29 @@ function typeStyles(type) {
     : "bg-[color:rgba(239,68,68,0.12)] text-[var(--accent-red)]";
 }
 
+function limitGroupedTransactions(groups, limit) {
+  let remaining = limit;
+  const limitedGroups = [];
+
+  for (const group of groups) {
+    if (remaining <= 0) {
+      break;
+    }
+
+    const visibleItems = group.items.slice(0, remaining);
+
+    if (visibleItems.length > 0) {
+      limitedGroups.push({
+        ...group,
+        items: visibleItems,
+      });
+      remaining -= visibleItems.length;
+    }
+  }
+
+  return limitedGroups;
+}
+
 export default function TransactionTable({
   transactions,
   role,
@@ -50,10 +75,21 @@ export default function TransactionTable({
   onExportJson,
 }) {
   const [exportAction, setExportAction] = useState("");
+  const [visibleCount, setVisibleCount] = useState(DEFAULT_VISIBLE_ROWS);
   const groupedTransactions = groupTransactions(transactions, groupBy);
+  const visibleGroups = limitGroupedTransactions(groupedTransactions, visibleCount);
   const incomeCount = transactions.filter((transaction) => transaction.type === "income").length;
   const expenseCount = transactions.length - incomeCount;
   const pendingCount = transactions.filter((transaction) => transaction.status === "pending").length;
+  const visibleTransactionsCount = visibleGroups.reduce(
+    (total, group) => total + group.items.length,
+    0,
+  );
+  const hasMoreTransactions = visibleTransactionsCount < transactions.length;
+
+  useEffect(() => {
+    setVisibleCount(DEFAULT_VISIBLE_ROWS);
+  }, [transactions, groupBy]);
 
   function handleExportChange(value) {
     setExportAction(value);
@@ -127,7 +163,9 @@ export default function TransactionTable({
               <option value="json">Export JSON</option>
             </select>
           </label>
-          <span className="results-pill">{transactions.length} results</span>
+          <span className="results-pill">
+            {visibleTransactionsCount} of {transactions.length} shown
+          </span>
         </div>
       </div>
 
@@ -144,7 +182,7 @@ export default function TransactionTable({
               )}
             </tr>
           </thead>
-          {groupedTransactions.map((group, groupIndex) => (
+          {visibleGroups.map((group, groupIndex) => (
             <tbody
               key={`${group.label || "all"}-${groupIndex}`}
               className="divide-y divide-[var(--border)]"
@@ -230,6 +268,36 @@ export default function TransactionTable({
           ))}
         </table>
       </div>
+
+      {transactions.length > DEFAULT_VISIBLE_ROWS ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] px-5 py-4">
+          <p className="text-sm text-[var(--muted)]">
+            {hasMoreTransactions
+              ? `Showing the first ${visibleTransactionsCount} transactions.`
+              : "Showing the full transaction list."}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {hasMoreTransactions ? (
+              <button
+                type="button"
+                onClick={() => setVisibleCount((current) => current + DEFAULT_VISIBLE_ROWS)}
+                className="secondary-button"
+              >
+                Show more
+              </button>
+            ) : null}
+            {visibleTransactionsCount > DEFAULT_VISIBLE_ROWS ? (
+              <button
+                type="button"
+                onClick={() => setVisibleCount(DEFAULT_VISIBLE_ROWS)}
+                className="secondary-button"
+              >
+                Show less
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

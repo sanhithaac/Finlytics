@@ -114,16 +114,16 @@ export default function TrendChart({
 
       <div className="neon-frame mt-8 p-5">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr),220px]">
-          <div className="overflow-hidden rounded-[24px] border border-[var(--border)] bg-[color:rgba(255,255,255,0.02)] p-4">
+          <div className="chart-stage">
             <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-[320px] w-full">
               <defs>
                 <linearGradient id="trendArea" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(139,92,246,0.45)" />
-                  <stop offset="100%" stopColor="rgba(59,130,246,0.04)" />
+                  <stop offset="0%" stopColor="var(--chart-area-top)" />
+                  <stop offset="100%" stopColor="var(--chart-area-bottom)" />
                 </linearGradient>
                 <linearGradient id="trendLine" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0%" stopColor="#8b5cf6" />
-                  <stop offset="100%" stopColor="#3b82f6" />
+                  <stop offset="0%" stopColor="var(--chart-line-start)" />
+                  <stop offset="100%" stopColor="var(--chart-line-end)" />
                 </linearGradient>
               </defs>
 
@@ -136,7 +136,7 @@ export default function TrendChart({
                     x2={chartWidth - chartPadding}
                     y1={y}
                     y2={y}
-                    stroke="rgba(167,139,250,0.12)"
+                    stroke="var(--chart-grid)"
                     strokeDasharray="6 10"
                   />
                 );
@@ -163,7 +163,7 @@ export default function TrendChart({
                         x2={point.x}
                         y1={chartPadding}
                         y2={chartHeight - chartPadding}
-                        stroke="rgba(255,255,255,0.22)"
+                        stroke="var(--chart-guide)"
                         strokeDasharray="4 8"
                       />
                     ) : null}
@@ -171,8 +171,8 @@ export default function TrendChart({
                       cx={point.x}
                       cy={point.y}
                       r={isActive ? 8 : 5}
-                      fill={isActive ? "#ffffff" : "#8b5cf6"}
-                      stroke="#3b82f6"
+                      fill={isActive ? "var(--chart-point-fill)" : "var(--chart-point-idle)"}
+                      stroke="var(--chart-point-stroke)"
                       strokeWidth="3"
                     />
                     <circle

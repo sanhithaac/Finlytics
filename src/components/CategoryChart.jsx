@@ -109,7 +109,7 @@ export default function CategoryChart({ data, transactions, spendingWindow, onWi
                   cy="140"
                   r="92"
                   fill="none"
-                  stroke="rgba(167,139,250,0.12)"
+                  stroke="var(--chart-grid)"
                   strokeWidth="34"
                 />
                 {slices.map((slice) => {

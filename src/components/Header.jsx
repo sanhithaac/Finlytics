@@ -94,12 +94,6 @@ export default function Header({
                   Synced through {todayLabel}
                 </p>
               </div>
-              <div className="header-inline-badge">
-                <span className="header-brand-kicker">Live workspace</span>
-                <span className="mt-2 text-sm font-semibold text-[var(--text-main)]">
-                  Dashboard overview
-                </span>
-              </div>
             </div>
 
             <p className="mt-4 max-w-2xl text-sm text-[var(--text-muted)]">
