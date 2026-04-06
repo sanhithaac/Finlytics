@@ -1,6 +1,6 @@
 const frameSources = Array.from({ length: 180 }, (_, index) => {
   const frame = String(index + 1).padStart(3, "0");
-  return `/intro-sequence/ezgif-frame-${frame}.jpg`;
+  return `intro-sequence/ezgif-frame-${frame}.jpg`;
 });
 
 export default function ParticleScrollAnimation({ progress }) {
@@ -13,6 +13,8 @@ export default function ParticleScrollAnimation({ progress }) {
         src={frameSource}
         alt="Finlytics animated data sequence"
         className="story-frame"
+        loading="eager"
+        decoding="async"
       />
       <div className="story-vignette" />
     </>

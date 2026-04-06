@@ -94,7 +94,7 @@ export default function InsightsPanel({ insights, summary }) {
         </div>
       </div>
 
-      <div className="mt-4 insight-surface">
+      <div className="insight-footer mt-4 insight-surface">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-[var(--text-muted)]">
           <span>
             Highest spend:{" "}

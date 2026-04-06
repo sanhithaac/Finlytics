@@ -551,7 +551,7 @@ export default function App() {
                     </div>
                   </section>
 
-                  <section className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr),minmax(0,1fr)] xl:items-stretch">
+                  <section className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr),minmax(0,0.92fr)] xl:items-stretch">
                     <BalanceBars data={monthlySeries.slice(-8)} />
                     <div ref={insightsRef} className="scroll-mt-24">
                       <InsightsPanel insights={insights} summary={summary} />

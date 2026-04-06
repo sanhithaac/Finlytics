@@ -84,7 +84,7 @@ export default function BalanceBars({ data }) {
               type="button"
               onMouseEnter={() => setHoveredMonth(item.monthKey)}
               onMouseLeave={() => setHoveredMonth(null)}
-              className={`balance-row ${isActive ? "balance-row-active" : ""}`}
+              className={`balance-row w-full lg:grid-cols-[112px,minmax(0,1fr)] lg:items-center ${isActive ? "balance-row-active" : ""}`}
             >
               <div>
                 <p className="text-sm font-semibold text-[var(--text-main)]">{item.label}</p>

@@ -73,8 +73,8 @@ export default function Header({
   return (
     <>
       <header className="flex flex-col gap-4 pb-5">
-        <div className="header-shell header-shell-balanced">
-          <div className="space-y-4">
+        <div className="header-shell">
+          <div>
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-xs font-bold uppercase tracking-[0.34em] text-[var(--text-muted)]">
                 Finance cockpit
@@ -85,33 +85,35 @@ export default function Header({
               </div>
             </div>
 
-            <div>
-              <p className="text-lg font-semibold text-[var(--text-main)]">Dashboard overview</p>
-              <p className="mt-2 max-w-xl text-sm text-[var(--text-muted)]">
-                Track cash flow, compare month-on-month movement, and review recent activity from a
-                cleaner single-screen workspace.
-              </p>
+            <div className="header-title-row">
+              <div>
+                <h1 className="text-[clamp(2.8rem,5vw,4.6rem)] font-black tracking-[-0.08em] text-[var(--text-main)]">
+                  {appName}
+                </h1>
+                <p className="mt-2 text-sm font-medium text-[var(--text-muted)]">
+                  Synced through {todayLabel}
+                </p>
+              </div>
+              <div className="header-inline-badge">
+                <span className="header-brand-kicker">Live workspace</span>
+                <span className="mt-2 text-sm font-semibold text-[var(--text-main)]">
+                  Dashboard overview
+                </span>
+              </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <p className="mt-4 max-w-2xl text-sm text-[var(--text-muted)]">
+              Track cash flow, compare month-on-month movement, and review recent activity from a
+              cleaner single-screen workspace.
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-2">
               {statusItems.map((item) => (
                 <span key={item.label} className="header-chip">
                   <span className="text-[var(--text-muted)]">{item.label}</span>
                   <span className="font-semibold text-[var(--text-main)]">{item.value}</span>
                 </span>
               ))}
-            </div>
-          </div>
-
-          <div className="header-centerpiece">
-            <div className="header-brand-badge">
-              <span className="header-brand-kicker">Workspace brand</span>
-              <h1 className="text-[clamp(2.7rem,5vw,4.4rem)] font-black tracking-[-0.08em] text-[var(--text-main)]">
-                {appName}
-              </h1>
-              <p className="mt-2 text-sm font-medium text-[var(--text-muted)]">
-                Synced through {todayLabel}
-              </p>
             </div>
           </div>
 

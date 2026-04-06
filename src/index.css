@@ -376,21 +376,17 @@ html[data-theme="light"] body {
     @apply flex flex-col gap-3 xl:min-w-[580px] xl:items-end;
   }
 
-  .header-shell-balanced {
-    @apply xl:grid-cols-[minmax(0,1fr),minmax(260px,0.7fr),minmax(0,1fr)] xl:items-center;
+  .header-title-row {
+    @apply mt-4 flex flex-wrap items-end gap-4;
   }
 
-  .header-centerpiece {
-    @apply flex items-center justify-center;
-  }
-
-  .header-brand-badge {
-    @apply flex w-full max-w-[300px] flex-col items-center justify-center rounded-[28px] border px-5 py-6 text-center;
+  .header-inline-badge {
+    @apply rounded-[22px] border px-4 py-3;
     border-color: var(--border);
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 58%),
       var(--card-soft);
-    box-shadow: var(--card-shadow);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.14);
   }
 
   .header-brand-kicker {
@@ -1380,6 +1376,12 @@ html[data-theme="light"] body {
     box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
   }
 
+  .insight-footer {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 60%),
+      var(--card-soft);
+  }
+
   .notification-trigger {
     @apply soft-panel relative flex h-11 w-11 items-center justify-center rounded-full text-[var(--text-main)];
   }
@@ -1522,10 +1524,6 @@ html[data-theme="light"] body {
 
     .header-toolbar {
       min-width: 0;
-    }
-
-    .header-shell-balanced {
-      grid-template-columns: 1fr;
     }
 
     .header-actions {
