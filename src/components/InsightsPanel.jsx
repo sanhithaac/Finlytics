@@ -8,7 +8,7 @@ export default function InsightsPanel({ insights, summary }) {
     "Financial activity remains stable overall, with spending concentrated in a small set of categories.";
 
   return (
-    <section className="panel">
+    <section className="panel h-full">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-[2rem] font-black tracking-tight text-[var(--text-main)]">

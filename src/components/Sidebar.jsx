@@ -107,10 +107,8 @@ export default function Sidebar({
         className={`sidebar-shell flex h-full flex-row items-center gap-3 p-3 xl:min-h-[calc(100vh-2rem)] xl:flex-col xl:justify-start ${
           isExpanded ? "sidebar-shell-expanded xl:w-[258px]" : "xl:w-[92px]"
         }`}
-        onMouseEnter={() => setIsExpanded(true)}
-        onMouseLeave={() => setIsExpanded(false)}
       >
-        <div className="hidden w-full px-2 pb-3 pt-1 xl:block">
+        <div className="hidden w-full items-center justify-between px-2 pb-3 pt-1 xl:flex">
           <div className="rail-text">
             <p className="text-sm font-bold tracking-[0.02em] text-[var(--text-main)]">
               Finlytics
@@ -119,6 +117,19 @@ export default function Sidebar({
               Track. Analyze. Grow.
             </p>
           </div>
+          <button
+            type="button"
+            onClick={() => setIsExpanded((current) => !current)}
+            className="sidebar-toggle"
+            title={isExpanded ? "Collapse navigation" : "Expand navigation"}
+          >
+            <span
+              aria-hidden="true"
+              className={`sidebar-toggle-arrow ${isExpanded ? "sidebar-toggle-arrow-open" : ""}`}
+            >
+              ›
+            </span>
+          </button>
         </div>
 
         <div className="hidden w-full px-2 xl:block">

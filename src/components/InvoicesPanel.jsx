@@ -24,7 +24,7 @@ export default function InvoicesPanel({ transactions, onCreateInvoice }) {
   const completed = items.filter((transaction) => transaction.status === "completed").length;
 
   return (
-    <section className="panel p-5">
+    <section className="panel h-full p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="section-title">Invoices</h3>

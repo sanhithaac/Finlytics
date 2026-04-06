@@ -66,7 +66,7 @@ export default function CategoryChart({ data, spendingWindow, onCycleWindow }) {
   });
 
   return (
-    <div className="chart-shell">
+    <div className="chart-shell h-full">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="neon-pill">Breakdown</div>

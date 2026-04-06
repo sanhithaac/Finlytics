@@ -14,7 +14,7 @@ export default function BalanceBars({ data }) {
   const maxValue = Math.max(...data.map((item) => Math.abs(item.net)), 1);
 
   return (
-    <div className="chart-shell cinematic-card">
+    <div className="chart-shell cinematic-card h-full">
       <div className="cinematic-card-line" />
       <div className="flex items-start justify-between gap-3">
         <div>

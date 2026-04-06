@@ -112,7 +112,21 @@ export default function FiltersBar({
           />
         </label>
 
-        <label className="md:col-span-2 xl:col-span-5">
+        <label>
+          <span className="field-label">Group by</span>
+          <select
+            value={filters.groupBy}
+            onChange={(event) => onChange({ groupBy: event.target.value })}
+            className="field mt-2"
+          >
+            <option value="none">No grouping</option>
+            <option value="category">Category</option>
+            <option value="type">Type</option>
+            <option value="date">Date</option>
+          </select>
+        </label>
+
+        <label className="md:col-span-2 xl:col-span-6">
           <span className="field-label">Search</span>
           <input
             value={filters.search}

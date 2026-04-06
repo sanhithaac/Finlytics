@@ -54,9 +54,10 @@ export default function Header({
               {role === "admin" ? "Admin access" : "Viewer mode"}
             </div>
           </div>
-          <h1 className="mt-2 text-[2.35rem] font-black tracking-tight text-[var(--text-main)]">
-            Overview
+          <h1 className="mt-2 text-[clamp(2.8rem,6vw,4.75rem)] font-black tracking-[-0.06em] text-[var(--text-main)]">
+            {appName}
           </h1>
+          <p className="mt-2 text-lg font-semibold text-[var(--text-main)]">Dashboard overview</p>
           <p className="mt-2 text-sm text-[var(--text-muted)]">
             {appName} helps you track cash flow, review activity, and monitor growth with a clean finance workspace.
           </p>
@@ -83,18 +84,41 @@ export default function Header({
           </label>
 
           <div className="header-actions">
-            <select
-              value={role}
-              onChange={(event) => onRoleChange(event.target.value)}
-              className="top-button min-w-[110px]"
-            >
-              <option value="admin">Admin</option>
-              <option value="viewer">Viewer</option>
-            </select>
+            <div className="segmented-control" role="tablist" aria-label="Role switcher">
+              {[
+                ["admin", "Admin"],
+                ["viewer", "Viewer"],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => onRoleChange(value)}
+                  className={`segmented-option ${role === value ? "segmented-option-active" : ""}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
-            <button type="button" onClick={onToggleTheme} className="top-button min-w-[96px]">
-              {theme === "dark" ? "Light" : "Dark"}
-            </button>
+            <div className="segmented-control" role="tablist" aria-label="Theme switcher">
+              {[
+                ["dark", "Dark"],
+                ["light", "Light"],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => {
+                    if (theme !== value) {
+                      onToggleTheme();
+                    }
+                  }}
+                  className={`segmented-option ${theme === value ? "segmented-option-active" : ""}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
             <button
               type="button"

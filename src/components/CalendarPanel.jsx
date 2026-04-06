@@ -52,7 +52,7 @@ export default function CalendarPanel({
   const change = ((summary.balance / income) * 100).toFixed(1);
 
   return (
-    <section className="panel cinematic-card p-4 sm:p-5">
+    <section className="panel cinematic-card h-full p-4 sm:p-5">
       <div className="cinematic-card-line" />
       <div className="flex items-center justify-between">
         <div>

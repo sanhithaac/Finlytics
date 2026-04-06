@@ -16,6 +16,7 @@ const defaultFilters = {
   startDate: "",
   endDate: "",
   sortBy: "date-desc",
+  groupBy: "none",
 };
 
 function parseStoredValue(key, fallback) {

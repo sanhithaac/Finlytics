@@ -36,7 +36,7 @@ export default function TrendChart({
     summary.income === 0 ? 0 : Math.max((summary.balance / summary.income) * 100, 0);
 
   return (
-    <section className="chart-shell cinematic-card min-h-[440px]">
+    <section className="chart-shell cinematic-card h-full min-h-[440px]">
       <div className="cinematic-card-line" />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>

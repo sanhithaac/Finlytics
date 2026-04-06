@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DashboardPreview from "./DashboardPreview";
 import ParticleScrollAnimation from "./ParticleScrollAnimation";
 import TextOverlays from "./TextOverlays";
@@ -7,9 +7,9 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-export default function ScrollIntro() {
-  const sectionRef = useRef(null);
+export default function ScrollIntro({ onComplete }) {
   const [progress, setProgress] = useState(0);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   const particles = useMemo(
     () =>
@@ -24,47 +24,42 @@ export default function ScrollIntro() {
   );
 
   useEffect(() => {
-    const node = sectionRef.current;
-
-    if (!node) {
-      return undefined;
-    }
-
     let frameId = 0;
+    const duration = 5600;
+    const startedAt = performance.now();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
-    const updateProgress = () => {
-      const rect = node.getBoundingClientRect();
-      const totalScrollable = Math.max(node.offsetHeight - window.innerHeight, 1);
-      const scrolled = clamp(-rect.top, 0, totalScrollable);
-      setProgress(scrolled / totalScrollable);
-    };
+    const animate = (now) => {
+      const nextProgress = clamp((now - startedAt) / duration, 0, 1);
+      setProgress(nextProgress);
 
-    const handleScroll = () => {
-      if (frameId) {
+      if (nextProgress < 1) {
+        frameId = window.requestAnimationFrame(animate);
         return;
       }
 
-      frameId = window.requestAnimationFrame(() => {
-        updateProgress();
-        frameId = 0;
-      });
+      setIsLeaving(true);
+      window.setTimeout(() => {
+        onComplete?.();
+      }, 520);
     };
 
-    updateProgress();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll);
+    frameId = window.requestAnimationFrame(animate);
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
+      document.body.style.overflow = previousOverflow;
       if (frameId) {
         window.cancelAnimationFrame(frameId);
       }
     };
-  }, []);
+  }, [onComplete]);
 
   return (
-    <section ref={sectionRef} className="story-shell">
+    <section
+      className={`story-shell ${isLeaving ? "story-shell-leaving" : ""}`}
+      aria-label="Opening Finlytics animation"
+    >
       <div className="story-sticky">
         <ParticleScrollAnimation progress={progress} particles={particles} />
         <TextOverlays progress={progress} />
@@ -79,6 +74,18 @@ export default function ScrollIntro() {
             />
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setProgress(1);
+            setIsLeaving(true);
+            window.setTimeout(() => onComplete?.(), 120);
+          }}
+          className="story-skip"
+        >
+          Skip intro
+        </button>
       </div>
     </section>
   );

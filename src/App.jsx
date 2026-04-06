@@ -85,6 +85,7 @@ export default function App() {
   const [spendingWindow, setSpendingWindow] = useState("30d");
   const [calendarMonth, setCalendarMonth] = useState(new Date("2026-04-01"));
   const [selectedMetric, setSelectedMetric] = useState("balance");
+  const [showIntro, setShowIntro] = useState(true);
   const overviewRef = useRef(null);
   const revenueRef = useRef(null);
   const calendarRef = useRef(null);
@@ -166,6 +167,10 @@ export default function App() {
   const hasActiveFilters = Object.entries(state.filters).some(([key, value]) => {
     if (key === "sortBy") {
       return value !== "date-desc";
+    }
+
+    if (key === "groupBy") {
+      return value !== "none";
     }
 
     return value !== "" && value !== "all";
@@ -254,6 +259,17 @@ export default function App() {
     const link = document.createElement("a");
     link.href = url;
     link.download = "finlytics-transactions.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleExportJson() {
+    const json = JSON.stringify(filteredTransactions, null, 2);
+    const blob = new Blob([json], { type: "application/json;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "finlytics-transactions.json";
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -365,6 +381,15 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] transition-colors duration-500">
+      {showIntro ? (
+        <ScrollIntro
+          onComplete={() => {
+            setTheme("dark");
+            setShowIntro(false);
+          }}
+        />
+      ) : null}
+
       <div className="relative min-h-screen p-0">
         <div className="min-h-screen w-full border border-[var(--shell-border)] bg-[var(--bg-main)] px-3 py-3 sm:px-4 sm:py-4">
           <div className="flex min-h-[calc(100vh-1.5rem)] flex-col gap-4 xl:flex-row">
@@ -378,13 +403,15 @@ export default function App() {
               role={state.role}
             />
 
-            <main className="flex-1 rounded-2xl border border-[var(--shell-border)] bg-[var(--bg-secondary)] p-4 sm:p-5">
+            <main
+              className={`flex-1 rounded-2xl border border-[var(--shell-border)] bg-[var(--bg-secondary)] p-4 transition duration-700 sm:p-5 ${
+                showIntro ? "dashboard-main-hidden" : "dashboard-main-ready"
+              }`}
+            >
               {isLoading ? (
                 <LoadingDashboard />
               ) : (
                 <div className="grid gap-4">
-                  <ScrollIntro />
-
                   <section className="dashboard-handoff">
                     <div>
                       <p className="dashboard-kicker">Live workspace</p>
@@ -476,7 +503,7 @@ export default function App() {
                     </div>
                   </section>
 
-                  <section className="grid gap-4 2xl:grid-cols-[1.7fr,0.8fr]">
+                  <section className="grid gap-4 xl:grid-cols-3 xl:items-stretch">
                     <div ref={revenueRef} className="scroll-mt-24">
                       <TrendChart
                         data={chartSeries}
@@ -486,6 +513,17 @@ export default function App() {
                         onOpenControls={() => scrollToSection("transactions")}
                       />
                     </div>
+                    <div ref={spendingRef} className="scroll-mt-24">
+                      <CategoryChart
+                        data={categoryBreakdown}
+                        spendingWindow={spendingWindow}
+                        onCycleWindow={handleCycleSpendingWindow}
+                      />
+                    </div>
+                    <BalanceBars data={monthlySeries.slice(-6)} />
+                  </section>
+
+                  <section className="grid gap-4 xl:grid-cols-3 xl:items-stretch">
                     <div ref={calendarRef} className="scroll-mt-24">
                       <CalendarPanel
                         transactions={filteredTransactions}
@@ -497,18 +535,8 @@ export default function App() {
                         onSelectDate={handleSelectCalendarDate}
                       />
                     </div>
-                  </section>
-
-                  <section className="grid gap-4 2xl:grid-cols-[1.05fr,1fr,0.92fr]">
                     <div ref={insightsRef} className="scroll-mt-24">
                       <InsightsPanel insights={insights} summary={summary} />
-                    </div>
-                    <div ref={spendingRef} className="scroll-mt-24">
-                      <CategoryChart
-                        data={categoryBreakdown}
-                        spendingWindow={spendingWindow}
-                        onCycleWindow={handleCycleSpendingWindow}
-                      />
                     </div>
                     <InvoicesPanel
                       transactions={invoiceTransactions}
@@ -516,7 +544,7 @@ export default function App() {
                     />
                   </section>
 
-                  <section ref={transactionsRef} className="grid scroll-mt-24 gap-4 2xl:grid-cols-[1.28fr,0.92fr]">
+                  <section ref={transactionsRef} className="grid scroll-mt-24 gap-4">
                     <FiltersBar
                       filters={state.filters}
                       categories={categories}
@@ -524,17 +552,18 @@ export default function App() {
                       onChange={setFilters}
                       onReset={resetFilters}
                     />
-                    <BalanceBars data={monthlySeries.slice(-6)} />
                   </section>
 
                   <section className="grid gap-4">
                     <TransactionTable
                       transactions={filteredTransactions}
                       role={state.role}
+                      groupBy={state.filters.groupBy}
                       onEdit={openEditModal}
                       onDelete={handleDeleteTransaction}
                       onClearFilters={resetFilters}
                       onExportCsv={handleExportCsv}
+                      onExportJson={handleExportJson}
                     />
                   </section>
                 </div>

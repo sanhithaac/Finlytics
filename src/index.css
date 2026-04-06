@@ -342,6 +342,27 @@ html[data-theme="light"] body {
     @apply secondary-button rounded-full px-4 py-3;
   }
 
+  .segmented-control {
+    @apply inline-flex items-center gap-1 rounded-full border p-1;
+    border-color: var(--border);
+    background: var(--card-soft);
+  }
+
+  .segmented-option {
+    @apply rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200;
+    color: var(--text-muted);
+  }
+
+  .segmented-option:hover {
+    color: var(--text-main);
+  }
+
+  .segmented-option-active {
+    background: var(--primary);
+    color: white;
+    box-shadow: var(--button-shadow);
+  }
+
   .header-shell {
     @apply grid gap-5 rounded-[28px] border px-5 py-5 xl:grid-cols-[minmax(0,1fr),auto] xl:items-start;
     border-color: var(--border);
@@ -378,11 +399,44 @@ html[data-theme="light"] body {
     background: var(--card-soft);
   }
 
+  .dashboard-main-hidden {
+    opacity: 0;
+    transform: translateY(16px) scale(0.992);
+  }
+
+  .dashboard-main-ready {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
   .sidebar-shell {
     @apply relative overflow-hidden rounded-[26px] border transition-all duration-300;
     border-color: var(--border);
     background: var(--sidebar-surface);
     box-shadow: var(--sidebar-shadow);
+  }
+
+  .sidebar-toggle {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-300;
+    border-color: var(--border);
+    background: var(--card-soft);
+    color: var(--text-main);
+  }
+
+  .sidebar-toggle:hover {
+    transform: scale(1.04);
+    box-shadow: var(--rail-hover-shadow);
+  }
+
+  .sidebar-toggle-arrow {
+    display: inline-block;
+    font-size: 1.15rem;
+    line-height: 1;
+    transition: transform 0.24s ease;
+  }
+
+  .sidebar-toggle-arrow-open {
+    transform: rotate(180deg);
   }
 
   .sidebar-shell::before {
@@ -793,6 +847,17 @@ html[data-theme="light"] body {
     border-color: rgba(239, 68, 68, 0.22);
   }
 
+  .group-row {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .group-row-label {
+    @apply flex items-center justify-between rounded-2xl border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em];
+    border-color: var(--border);
+    background: var(--card-soft);
+    color: var(--text-muted);
+  }
+
   .controls-shell {
     @apply panel;
   }
@@ -802,7 +867,7 @@ html[data-theme="light"] body {
   }
 
   .controls-grid {
-    @apply mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-5;
+    @apply mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-6;
   }
 
   .controls-note {
@@ -894,16 +959,22 @@ html[data-theme="light"] body {
   }
 
   .story-shell {
-    position: relative;
-    height: 320vh;
-    border-radius: 30px;
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    padding: 1rem;
+    opacity: 1;
+    transition: opacity 0.45s ease;
+  }
+
+  .story-shell-leaving {
+    opacity: 0;
   }
 
   .story-sticky {
-    position: sticky;
-    top: 1rem;
+    position: relative;
     display: flex;
-    min-height: calc(100vh - 2rem);
+    min-height: calc(100svh - 2rem);
     overflow: hidden;
     border: 1px solid rgba(167, 139, 250, 0.2);
     border-radius: 30px;
@@ -1097,6 +1168,23 @@ html[data-theme="light"] body {
     box-shadow: 0 0 16px rgba(139, 92, 246, 0.6);
   }
 
+  .story-skip {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 3;
+    border: 1px solid rgba(167, 139, 250, 0.22);
+    border-radius: 999px;
+    padding: 0.7rem 1rem;
+    background: rgba(10, 10, 18, 0.38);
+    color: white;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    backdrop-filter: blur(12px);
+  }
+
   .story-preview {
     position: absolute;
     left: 6%;
@@ -1244,11 +1332,12 @@ html[data-theme="light"] body {
     background: rgba(255, 255, 255, 0.72);
   }
 
-  @media (max-width: 1279px) {
-    .story-shell {
-      height: 290vh;
-    }
+  html[data-theme="light"] .story-skip {
+    background: rgba(255, 255, 255, 0.62);
+    color: var(--text-main);
+  }
 
+  @media (max-width: 1279px) {
     .header-shell {
       padding: 1.25rem;
     }
@@ -1277,12 +1366,7 @@ html[data-theme="light"] body {
   }
 
   @media (max-width: 767px) {
-    .story-shell {
-      height: 250vh;
-    }
-
     .story-sticky {
-      top: 0.5rem;
       min-height: calc(100svh - 1rem);
     }
 
@@ -1328,6 +1412,12 @@ html[data-theme="light"] body {
     .story-wave {
       left: 2rem;
       right: 2rem;
+    }
+
+    .story-skip {
+      top: 1rem;
+      right: 1rem;
+      padding: 0.6rem 0.85rem;
     }
 
     .header-shell {
