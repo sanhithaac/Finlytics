@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ParticleScrollAnimation from "./ParticleScrollAnimation";
 
 function clamp(value, min, max) {
@@ -8,14 +8,22 @@ function clamp(value, min, max) {
 export default function ScrollIntro({ onComplete }) {
   const [progress, setProgress] = useState(0);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const completeRef = useRef(onComplete);
   const hasCompletedRef = useRef(false);
+
+  const handleReady = useCallback(() => {
+    setIsReady(true);
+  }, []);
 
   useEffect(() => {
     completeRef.current = onComplete;
   }, [onComplete]);
 
+
   useEffect(() => {
+    if (!isReady) return;
+
     let frameId = 0;
     let timeoutId = 0;
     const duration = 5600;
@@ -52,7 +60,8 @@ export default function ScrollIntro({ onComplete }) {
         window.clearTimeout(timeoutId);
       }
     };
-  }, []);
+  }, [isReady]);
+
 
   return (
     <section
@@ -60,7 +69,7 @@ export default function ScrollIntro({ onComplete }) {
       aria-label="Opening Finlytics animation"
     >
       <div className="story-sticky">
-        <ParticleScrollAnimation progress={progress} />
+        <ParticleScrollAnimation progress={progress} onReady={handleReady} />
 
         <button
           type="button"
